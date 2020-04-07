@@ -1,2 +1,2 @@
-# rdkit_colab
-Example repo for running custom software (rdkit) on a colab with private github repo.
+# rdkit on colab
+Template repo for running custom software (rdkit) on a colab. Supports private repos.
