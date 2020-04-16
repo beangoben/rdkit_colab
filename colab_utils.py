@@ -31,8 +31,9 @@ def pip_install(package_list, force=False):
 def pip_install_from_conda_yaml(filename='environment.yml', force=False):
     pip_config = None
     with open(filename,'r') as afile:
-        config = yaml.load(afile):
-        for item in config:
+        config = yaml.load(afile)
+        assert 'dependencies' in config, f'{filename} is not a valid conda yaml'
+        for item in config['dependencies']:
             if isinstance(item, dict) and item['pip'] is not None:
                 pip_config = item['pip']
     assert pip_config is not None, f'Did not find pip in {filename}'
