@@ -8,6 +8,11 @@ import subprocess
 import sys
 import urllib.request
 from typing import List, Text
+
+import IPython.display
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import seaborn as sns
 import yaml
 
 # Assumes miniconda3 latests is 3.7, might have to update if it changes.
@@ -95,3 +100,26 @@ def install_rdkit(force=False):
     if IN_COLAB and not os.path.exists(CONDA_DIR) and not force:
         run_cmd_list(cmd_list)
         print(f'Restart your runtime and append "{CONDA_DIR}" to sys.path!')
+
+
+def override_matplotlib_defaults():
+    """"Change matplotlib settings."""
+    sns.set_style("white")
+    sns.set_style('ticks')
+    sns.set_context("paper", font_scale=2.25)
+    sns.set_palette(sns.color_palette('bright'))
+
+    params = {'savefig.dpi': 100,
+              'lines.linewidth': 3,
+              'axes.linewidth': 2.5,
+              'savefig.dpi': 300,
+              'xtick.major.width': 2.5,
+              'ytick.major.width': 2.5,
+              'xtick.minor.width': 1,
+              'ytick.minor.width': 1,
+              'font.weight': 'medium',
+              'figure.figsize': (12, 8)
+              }
+
+    mpl.rcParams.update(params)
+    IPython.display.set_matplotlib_formats('retina')

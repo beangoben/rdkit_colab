@@ -1,0 +1,24 @@
+name: rdkit_colab
+channels:
+- rdkit
+- defaults
+- conda-forge
+dependencies:
+- rdkit
+- numpy
+- ipython
+- jupyter
+- matplotlib
+- numpy
+- pandas
+- cudatoolkit
+- scipy
+- seaborn
+- tqdm
+- scikit-learn
+- cudnn
+- tensorflow-gpu
+- pip:
+  - umap-learn
+  - e3fp
+  - selfies
