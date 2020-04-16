@@ -28,10 +28,11 @@ def pip_install(package_list, force=False):
     extra = '--upgrade --force-reinstall' if force else ''
     [run_cmd(f'pip install {extra} {p}') for p in package_list]
 
-def pip_install_from_conda_yaml(filename='environmnet.yml', force=False):
+def pip_install_from_conda_yaml(filename='environment.yml', force=False):
     pip_config = None
     with open(filename,'r') as afile:
-        for item in yaml.load(afile):
+        config = yaml.load(afile):
+        for item in config:
             if isinstance(item, dict) and item['pip'] is not None:
                 pip_config = item['pip']
     assert pip_config is not None, f'Did not find pip in {filename}'
