@@ -8,12 +8,16 @@ import subprocess
 import sys
 import urllib.request
 from typing import List, Text
+import yaml
 
 # Assumes miniconda3 latests is 3.7, might have to update if it changes.
 CONDA_DIR = '/usr/local/lib/python3.7/site-packages/'
 IN_COLAB = 'google.colab' in sys.modules
 CONDA_URL = 'https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh'
 
+def add_conda_dir_to_python_path():
+    """Add CONDA_DIR to sys.path."""
+    sys.path.append(CONDA_DIR)
 
 def is_running_colab()-> bool:
     """Check if running colab"""
@@ -24,6 +28,14 @@ def pip_install(package_list, force=False):
     extra = '--upgrade --force-reinstall' if force else ''
     [run_cmd(f'pip install {extra} {p}') for p in package_list]
 
+def pip_install_from_conda_yaml(filename='environmnet.yml', force=False):
+    pip_config = None
+    with open(filename,'r') as afile:
+        for item in yaml.load(afile):
+            if isinstance(item, dict) and item['pip'] is not None:
+                pip_config = item['pip']
+    assert pip_config is not None, f'Did not find pip in {filename}'
+    pip_install(pip_config, force=force)
 
 def run_cmd(cmd: Text, split: bool=True, shell=False, verbose: bool=True):
     """Run a system command and print output."""
