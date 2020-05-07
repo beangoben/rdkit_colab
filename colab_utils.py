@@ -102,7 +102,7 @@ def install_rdkit(force=False):
         print(f'Restart your runtime and append "{CONDA_DIR}" to sys.path!')
 
 
-def override_matplotlib_defaults():
+def matplotlib_settings():
     """"Change matplotlib settings."""
     sns.set_style("white")
     sns.set_style('ticks')
