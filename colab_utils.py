@@ -121,7 +121,7 @@ def install_complement_enviroment_yaml(filename: Text='environment.yml',
     chanel_str = ' '.join([f'-c {c}' for c in channels])
     conda_cmds = [f"{conda_prefix} {chanel_str} {pkg}"for pkg in conda_modules]
     # Setup pip packages.
-    pip_modules = set(pip_modules).difference(installed_modules)
+    keep_modules = set(pip_modules).difference(installed_modules)
     keep_modules = keep_modules.difference(exclude)
     pip_modules = [c for c in pip_modules if c in keep_modules]
 
