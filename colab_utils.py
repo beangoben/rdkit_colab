@@ -148,7 +148,11 @@ def pip_install_from_conda_yaml(filename='environment.yml', force=False):
     _, _, pip_modules = parse_environment_yaml(filename)
     pip_install(pip_modules, force=force)
 
-
+def print_module_versions(module_list):
+    """Print module versions"""
+    for module in module_list:
+        print(f'{module.__name__:<10s}: {module.__version__}')
+        
 def matplotlib_settings():
     """"Change matplotlib settings."""
     sns.set_style("white")
