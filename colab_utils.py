@@ -118,10 +118,9 @@ def pip_install_from_yaml(filename: Text = 'environment.yml',
         keep_modules = keep_modules.difference(exclude)
         pip_modules = [c for c in pip_modules if c in keep_modules]
 
-
-print(f'pip installing {pip_modules}')
-if IN_COLAB:
-    pip_install(pip_modules, force)
+    print(f'pip installing {pip_modules}')
+    if IN_COLAB:
+        pip_install(pip_modules, force)
 
 
 def conda_install_from_yaml(filename: Text = 'environment.yml',
