@@ -131,10 +131,13 @@ def install_complement_enviroment_yaml(filename: Text='environment.yml',
         f"bash ./{conda_sh} -b -f -p /usr/local",
         f"rm -rf {conda_sh}"] + conda_cmds
 
-    if IN_COLAB and not os.path.exists(CONDA_DIR) and not force:
+    if IN_COLAB and not os.path.exists(CONDA_DIR) and len(conda_cmds) > 0:
         run_cmd_list(cmd_list)
+    
+    if IN_COLAB:
         pip_install(pip_modules, force)
-        print(f'Restart your runtime and append "{CONDA_DIR}" to sys.path!')
+       
+    print(f'Append "{CONDA_DIR}" to sys.path, or use "colab_utils.add_conda_dir_to_python_path()"!')
 
 
 def pip_install_from_conda_yaml(filename='environment.yml', force=False):
