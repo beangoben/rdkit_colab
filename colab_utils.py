@@ -104,28 +104,46 @@ def parse_environment_yaml(filename: Text) -> Tuple[List[Text], List[Text], List
     return channels, conda_modules, pip_modules
 
 
-def install_complement_enviroment_yaml(filename: Text='environment.yml',
-                                       exclude: List[Text]=DEFAULT_CONDA_EXCLUDE,
-                                       force: bool=False):
-    """Using a conda env yaml, install packages not found in colab."""
-    channels, conda_modules, pip_modules = parse_environment_yaml(filename)
+def pip_install_from_yaml(filename: Text='environment.yml',
+                          exclude: List[Text]=DEFAULT_CONDA_EXCLUDE,
+                          filter_installed: bool=True,
+                          force: bool=False):
+    """Using a conda env yaml, install pip packages not found in colab."""
+    _, _, pip_modules = parse_environment_yaml(filename)
 
-    installed_modules = [p.name for p in pkgutil.iter_modules()]
+    # Setup pip packages.
+    if filter_installed:
+        installed_modules = [p.name for p in pkgutil.iter_modules()]
+            keep_modules = set(pip_modules).difference(installed_modules)
+            keep_modules = keep_modules.difference(exclude)
+            pip_modules = [c for c in pip_modules if c in keep_modules]
+
+    print(f'pip installing {pip_modules}')
+    if IN_COLAB:
+        pip_install(pip_modules, force)
+
+
+def conda_install_from_yaml(filename: Text='environment.yml',
+                            exclude: List[Text]=DEFAULT_CONDA_EXCLUDE,
+                            filter_installed: bool=True):
+    """Using a conda env yaml, install packages not found in colab."""
+    if os.path.exists(CONDA_DIR):
+        print('Ignoring: conda install already exists in {CONDA_DIR}!')
+        return
+
+    channels, conda_modules, _ = parse_environment_yaml(filename)
+
     # Setup conda packages.
-    keep_modules = set(conda_modules).difference(installed_modules)
-    keep_modules = keep_modules.difference(exclude)
-    conda_modules = [c for c in conda_modules if c in keep_modules]
+    if filter_installed:
+        installed_modules = [p.name for p in pkgutil.iter_modules()]
+        keep_modules = set(conda_modules).difference(installed_modules)
+        keep_modules = keep_modules.difference(exclude)
+        conda_modules = [c for c in conda_modules if c in keep_modules]
     print(f'Conda installing {conda_modules}')
     print(f' from channels {channels}')
     conda_prefix = f'conda install -q -y '
     chanel_str = ' '.join([f'-c {c}' for c in channels])
     conda_cmds = [f"{conda_prefix} {chanel_str} {pkg}"for pkg in conda_modules]
-    # Setup pip packages.
-    keep_modules = set(pip_modules).difference(installed_modules)
-    keep_modules = keep_modules.difference(exclude)
-    pip_modules = [c for c in pip_modules if c in keep_modules]
-
-    print(f'pip installing {pip_modules}')
 
     conda_sh = CONDA_URL.split('/')[-1]
     cmd_list = [
@@ -134,25 +152,17 @@ def install_complement_enviroment_yaml(filename: Text='environment.yml',
         f"bash ./{conda_sh} -b -f -p /usr/local",
         f"rm -rf {conda_sh}"] + conda_cmds
 
-    if IN_COLAB and not os.path.exists(CONDA_DIR) and len(conda_cmds) > 0:
+    if IN_COLAB and and len(conda_cmds) > 0:
         run_cmd_list(cmd_list)
+        print(f'Append "{CONDA_DIR}" to sys.path, or use "colab_utils.add_conda_dir_to_python_path()"!')
 
-    if IN_COLAB:
-        pip_install(pip_modules, force)
-
-    print(f'Append "{CONDA_DIR}" to sys.path, or use "colab_utils.add_conda_dir_to_python_path()"!')
-
-
-def pip_install_from_conda_yaml(filename='environment.yml', force=False):
-    """Install pip modules from conda env yml."""
-    _, _, pip_modules = parse_environment_yaml(filename)
-    pip_install(pip_modules, force=force)
 
 def print_module_versions(module_list):
     """Print module versions"""
     for module in module_list:
         print(f'{module.__name__:<10s}: {module.__version__}')
-        
+
+
 def matplotlib_settings():
     """"Change matplotlib settings."""
     sns.set_style("white")
