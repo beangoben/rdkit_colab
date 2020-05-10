@@ -117,10 +117,8 @@ def install_complement_enviroment_yaml(filename: Text='environment.yml',
     print(f'Conda installing {conda_modules}')
     print(f' from channels {channels}')
     conda_prefix = f'conda install -q -y '
-    print(channels)
     chanel_str = ' '.join([f'-c {c}' for c in channels])
     conda_cmds = [f"{conda_prefix} {chanel_str} {pkg}"for pkg in conda_modules]
-    print(conda_cmds)
     # Setup pip packages.
     pip_modules = set(pip_modules).difference(installed_modules)
     pip_modules = list(pip_modules.difference(exclude))
