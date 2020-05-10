@@ -1,7 +1,6 @@
 name: rdkit_colab
 channels:
 - rdkit
-- defaults
 - conda-forge
 dependencies:
 - rdkit
@@ -18,7 +17,7 @@ dependencies:
 - scikit-learn
 - cudnn
 - tensorflow-gpu
+- umap-learn
 - pip:
-  - umap-learn
   - e3fp
   - selfies

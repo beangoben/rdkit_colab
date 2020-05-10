@@ -2,16 +2,16 @@
 import glob
 import os
 import pathlib
+import pkgutil
 import shlex
 import shutil
 import subprocess
 import sys
 import urllib.request
-from typing import List, Text
+from typing import List, Text, Tuple
 
 import IPython.display
 import matplotlib as mpl
-import matplotlib.pyplot as plt
 import seaborn as sns
 import yaml
 
@@ -20,11 +20,17 @@ CONDA_DIR = '/usr/local/lib/python3.7/site-packages/'
 IN_COLAB = 'google.colab' in sys.modules
 CONDA_URL = 'https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh'
 
+# Packages already present in colab.
+DEFAULT_CONDA_EXCLUDE = ['cudatoolkit', 'cudnn',
+                         'ipython', 'scikit-learn', 'tensorflow-gpu']
+
+
 def add_conda_dir_to_python_path():
     """Add CONDA_DIR to sys.path."""
     sys.path.append(CONDA_DIR)
 
-def is_running_colab()-> bool:
+
+def is_running_colab() -> bool:
     """Check if running colab"""
     return 'google.colab' in sys.modules
 
@@ -33,16 +39,6 @@ def pip_install(package_list, force=False):
     extra = '--upgrade --force-reinstall' if force else ''
     [run_cmd(f'pip install {extra} {p}') for p in package_list]
 
-def pip_install_from_conda_yaml(filename='environment.yml', force=False):
-    pip_config = None
-    with open(filename,'r') as afile:
-        config = yaml.load(afile)
-        assert 'dependencies' in config, f'{filename} is not a valid conda yaml'
-        for item in config['dependencies']:
-            if isinstance(item, dict) and item['pip'] is not None:
-                pip_config = item['pip']
-    assert pip_config is not None, f'Did not find pip in {filename}'
-    pip_install(pip_config, force=force)
 
 def run_cmd(cmd: Text, split: bool=True, shell=False, verbose: bool=True):
     """Run a system command and print output."""
@@ -66,7 +62,7 @@ def run_cmd_list(cmd_list: List[Text]):
     list(map(run_cmd, cmd_list))
 
 
-def clone_repo(repo_url: Text)-> None:
+def clone_repo(repo_url: Text) -> None:
     """Clone github repo and move to main dir."""
     repo_dir = repo_url.split('/')[-1].replace('.git', '')
     run_cmd(f'git clone {repo_url}', split=False, shell=True)
@@ -76,7 +72,7 @@ def clone_repo(repo_url: Text)-> None:
     shutil.rmtree(repo_dir)
 
 
-def copy_ssh_key(id_rsa_url: Text)->None:
+def copy_ssh_key(id_rsa_url: Text) -> None:
     """Copy ssh keys for private repos."""
     key_dir = "/root/.ssh"
     key_path = os.path.join(key_dir, 'id_rsa')
@@ -89,17 +85,58 @@ def copy_ssh_key(id_rsa_url: Text)->None:
         afile.write(text)
 
 
-def install_rdkit(force=False):
+def parse_environment_yaml(filename: Text) -> Tuple[List[Text], List[Text], List[Text]]:
+    """Parse yaml file and get channels, conda and pip modules."""
+    pip_modules = []
+    conda_modules = []
+    with open(filename, 'r') as afile:
+        config = yaml.load(afile)
+        channels = config.get('channels') or []
+        assert 'dependencies' in config, f'{filename} is not a valid conda yaml'
+        for item in config['dependencies']:
+            if isinstance(item, dict) and item['pip'] is not None:
+                pip_modules = item['pip']
+            if isinstance(item, str):
+                conda_modules.append(item)
+    return channels, conda_modules, pip_modules
+
+
+def install_complement_enviroment_yaml(filename: Text='environment.yml',
+                                       exclude: List[Text]=DEFAULT_CONDA_EXCLUDE,
+                                       force: bool=False):
+    """Using a conda env yaml, install packages not found in colab."""
+    channels, conda_modules, pip_modules = parse_environment_yaml(filename)
+
+    installed_modules = [p.name for p in pkgutil.iter_modules()]
+    # Setup conda packages.
+    conda_modules = set(conda_modules).difference(installed_modules)
+    conda_modules = list(conda_modules.difference(exclude))
+    conda_prefix = f'conda install -q -y '
+    print(channels)
+    chanel_str = ' '.join([f'-c {c}' for c in channels])
+    conda_cmds = [f"{conda_prefix} {chanel_str} {pkg}"for pkg in conda_modules]
+    print(conda_cmds)
+    # Setup pip packages.
+    pip_modules = set(pip_modules).difference(installed_modules)
+    pip_modules = list(pip_modules.difference(exclude))
+
     conda_sh = CONDA_URL.split('/')[-1]
     cmd_list = [
         f"wget -c {CONDA_URL}",
         f"chmod +x {conda_sh}",
         f"bash ./{conda_sh} -b -f -p /usr/local",
-        "conda install -q -y -c conda-forge rdkit",
-        f"rm -rf {conda_sh}"]
+        f"rm -rf {conda_sh}"] + conda_cmds
+
     if IN_COLAB and not os.path.exists(CONDA_DIR) and not force:
         run_cmd_list(cmd_list)
+        pip_install(pip_modules, force)
         print(f'Restart your runtime and append "{CONDA_DIR}" to sys.path!')
+
+
+def pip_install_from_conda_yaml(filename='environment.yml', force=False):
+    """Install pip modules from conda env yml."""
+    _, _, pip_modules = parse_environment_yaml(filename)
+    pip_install(pip_modules, force=force)
 
 
 def matplotlib_settings():
