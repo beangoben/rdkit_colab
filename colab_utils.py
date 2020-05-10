@@ -112,8 +112,9 @@ def install_complement_enviroment_yaml(filename: Text='environment.yml',
 
     installed_modules = [p.name for p in pkgutil.iter_modules()]
     # Setup conda packages.
-    conda_modules = set(conda_modules).difference(installed_modules)
-    conda_modules = list(conda_modules.difference(exclude))
+    keep_modules = set(conda_modules).difference(installed_modules)
+    keep_modules = keep_modules.difference(exclude)
+    conda_modules = [c for c in conda_modules if c in keep_modules]
     print(f'Conda installing {conda_modules}')
     print(f' from channels {channels}')
     conda_prefix = f'conda install -q -y '
@@ -121,7 +122,9 @@ def install_complement_enviroment_yaml(filename: Text='environment.yml',
     conda_cmds = [f"{conda_prefix} {chanel_str} {pkg}"for pkg in conda_modules]
     # Setup pip packages.
     pip_modules = set(pip_modules).difference(installed_modules)
-    pip_modules = list(pip_modules.difference(exclude))
+    keep_modules = keep_modules.difference(exclude)
+    pip_modules = [c for c in pip_modules if c in keep_modules]
+
     print(f'pip installing {pip_modules}')
 
     conda_sh = CONDA_URL.split('/')[-1]
@@ -133,10 +136,10 @@ def install_complement_enviroment_yaml(filename: Text='environment.yml',
 
     if IN_COLAB and not os.path.exists(CONDA_DIR) and len(conda_cmds) > 0:
         run_cmd_list(cmd_list)
-    
+
     if IN_COLAB:
         pip_install(pip_modules, force)
-       
+
     print(f'Append "{CONDA_DIR}" to sys.path, or use "colab_utils.add_conda_dir_to_python_path()"!')
 
 
