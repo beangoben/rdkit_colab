@@ -152,7 +152,7 @@ def conda_install_from_yaml(filename: Text = 'environment.yml',
                    f"bash ./{conda_sh} -b -f -p /usr/local",
                    f"rm -rf {conda_sh}"] + conda_cmds
 
-    if IN_COLAB and and len(conda_cmds) > 0:
+    if IN_COLAB and len(conda_cmds) > 0:
         run_cmd_list(cmd_list)
         print(f'Append "{CONDA_DIR}" to sys.path, or use "colab_utils.add_conda_dir_to_python_path()"!')
 
