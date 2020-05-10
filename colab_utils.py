@@ -40,7 +40,7 @@ def pip_install(package_list, force=False):
     [run_cmd(f'pip install {extra} {p}') for p in package_list]
 
 
-def run_cmd(cmd: Text, split: bool=True, shell=False, verbose: bool=True):
+def run_cmd(cmd: Text, split: bool = True, shell=False, verbose: bool = True):
     """Run a system command and print output."""
     print(f'CMD: {cmd}')
     cmd = shlex.split(cmd) if split else [cmd]
@@ -104,28 +104,29 @@ def parse_environment_yaml(filename: Text) -> Tuple[List[Text], List[Text], List
     return channels, conda_modules, pip_modules
 
 
-def pip_install_from_yaml(filename: Text='environment.yml',
-                          exclude: List[Text]=DEFAULT_CONDA_EXCLUDE,
-                          filter_installed: bool=True,
-                          force: bool=False):
+def pip_install_from_yaml(filename: Text = 'environment.yml',
+                          exclude: List[Text] = DEFAULT_CONDA_EXCLUDE,
+                          filter_installed: bool = True,
+                          force: bool = False):
     """Using a conda env yaml, install pip packages not found in colab."""
     _, _, pip_modules = parse_environment_yaml(filename)
 
     # Setup pip packages.
     if filter_installed:
         installed_modules = [p.name for p in pkgutil.iter_modules()]
-            keep_modules = set(pip_modules).difference(installed_modules)
-            keep_modules = keep_modules.difference(exclude)
-            pip_modules = [c for c in pip_modules if c in keep_modules]
-
-    print(f'pip installing {pip_modules}')
-    if IN_COLAB:
-        pip_install(pip_modules, force)
+        keep_modules = set(pip_modules).difference(installed_modules)
+        keep_modules = keep_modules.difference(exclude)
+        pip_modules = [c for c in pip_modules if c in keep_modules]
 
 
-def conda_install_from_yaml(filename: Text='environment.yml',
-                            exclude: List[Text]=DEFAULT_CONDA_EXCLUDE,
-                            filter_installed: bool=True):
+print(f'pip installing {pip_modules}')
+if IN_COLAB:
+    pip_install(pip_modules, force)
+
+
+def conda_install_from_yaml(filename: Text = 'environment.yml',
+                            exclude: List[Text] = DEFAULT_CONDA_EXCLUDE,
+                            filter_installed: bool = True):
     """Using a conda env yaml, install packages not found in colab."""
     if os.path.exists(CONDA_DIR):
         print('Ignoring: conda install already exists in {CONDA_DIR}!')
@@ -143,14 +144,14 @@ def conda_install_from_yaml(filename: Text='environment.yml',
     print(f' from channels {channels}')
     conda_prefix = f'conda install -q -y '
     chanel_str = ' '.join([f'-c {c}' for c in channels])
-    conda_cmds = [f"{conda_prefix} {chanel_str} {pkg}"for pkg in conda_modules]
+    conda_cmds = [f"{conda_prefix} {chanel_str} {pkg}" for pkg in conda_modules]
 
     conda_sh = CONDA_URL.split('/')[-1]
     cmd_list = [
-        f"wget -c {CONDA_URL}",
-        f"chmod +x {conda_sh}",
-        f"bash ./{conda_sh} -b -f -p /usr/local",
-        f"rm -rf {conda_sh}"] + conda_cmds
+                   f"wget -c {CONDA_URL}",
+                   f"chmod +x {conda_sh}",
+                   f"bash ./{conda_sh} -b -f -p /usr/local",
+                   f"rm -rf {conda_sh}"] + conda_cmds
 
     if IN_COLAB and and len(conda_cmds) > 0:
         run_cmd_list(cmd_list)
