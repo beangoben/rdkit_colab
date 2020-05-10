@@ -66,9 +66,12 @@ def clone_repo(repo_url: Text) -> None:
     """Clone github repo and move to main dir."""
     repo_dir = repo_url.split('/')[-1].replace('.git', '')
     run_cmd(f'git clone {repo_url}', split=False, shell=True)
-    # mv {repo_dir}/* to .
-    for afile in glob.glob(f'{repo_dir}/*'):
-        shutil.move(afile, '.')
+    for src in glob.glob(f'{repo_dir}/*'):
+        dst = os.path.basename(src)
+        if os.path.exists(dst):
+            shutil.copy(src, dst)
+        else:
+            shutil.move(src, '.')
     shutil.rmtree(repo_dir)
 
 
@@ -111,6 +114,8 @@ def install_complement_enviroment_yaml(filename: Text='environment.yml',
     # Setup conda packages.
     conda_modules = set(conda_modules).difference(installed_modules)
     conda_modules = list(conda_modules.difference(exclude))
+    print(f'Conda installing {conda_modules}')
+    print(f' from channels {channels}')
     conda_prefix = f'conda install -q -y '
     print(channels)
     chanel_str = ' '.join([f'-c {c}' for c in channels])
@@ -119,6 +124,7 @@ def install_complement_enviroment_yaml(filename: Text='environment.yml',
     # Setup pip packages.
     pip_modules = set(pip_modules).difference(installed_modules)
     pip_modules = list(pip_modules.difference(exclude))
+    print(f'pip installing {pip_modules}')
 
     conda_sh = CONDA_URL.split('/')[-1]
     cmd_list = [
