@@ -87,6 +87,19 @@ def copy_ssh_key(id_rsa_url: Text) -> None:
     with open(os.path.join(key_dir, 'known_hosts'), 'wb') as afile:
         afile.write(text)
 
+def make_ssh_key(private_key_text: Text) -> None:
+    """Write a ssh key for a private repo."""
+    key_dir = "/root/.ssh"
+    key_path = os.path.join(key_dir, 'id_rsa')
+    pathlib.Path(key_dir).mkdir(parents=True, exist_ok=True)
+    with open(key_path,'w') as afile:
+        afile.write(private_key_text)
+
+    os.chmod(key_path, 0o400)
+    # Same as 'ssh-keyscan github.com >> {key_dir}/known_hosts'
+    text = subprocess.check_output(['ssh-keyscan', 'github.com'])
+    with open(os.path.join(key_dir, 'known_hosts'), 'wb') as afile:
+        afile.write(text)
 
 def parse_environment_yaml(filename: Text) -> Tuple[List[Text], List[Text], List[Text]]:
     """Parse yaml file and get channels, conda and pip modules."""
