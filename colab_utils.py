@@ -92,7 +92,7 @@ def make_ssh_key(private_key_text: Text) -> None:
     key_dir = "/root/.ssh"
     key_path = os.path.join(key_dir, 'id_rsa')
     pathlib.Path(key_dir).mkdir(parents=True, exist_ok=True)
-    with open(key_path,'w') as afile:
+    with open(key_path, 'wb') as afile:
         afile.write(private_key_text)
 
     os.chmod(key_path, 0o400)
