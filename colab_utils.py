@@ -65,7 +65,7 @@ def run_cmd_list(cmd_list: List[Text]):
 def clone_repo(repo_url: Text) -> None:
     """Clone github repo and move to main dir."""
     repo_dir = repo_url.split('/')[-1].replace('.git', '')
-    run_cmd(f'git clone {repo_url}', split=False, shell=True)
+    run_cmd(f'git clone --recursive {repo_url}', split=False, shell=True)
     for src in glob.glob(f'{repo_dir}/*'):
         dst = os.path.basename(src)
         if os.path.exists(dst):
