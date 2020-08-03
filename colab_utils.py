@@ -15,8 +15,8 @@ import matplotlib as mpl
 import seaborn as sns
 import yaml
 
-# Assumes miniconda3 latests is 3.7, might have to update if it changes.
-CONDA_DIR = '/usr/local/lib/python3.7/site-packages/'
+# Assumes miniconda3 latests is 3.8, might have to update if it changes.
+CONDA_DIR = '/usr/local/lib/python3.8/site-packages/'
 IN_COLAB = 'google.colab' in sys.modules
 CONDA_URL = 'https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh'
 
